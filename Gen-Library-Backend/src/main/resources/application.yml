@@ -1,0 +1,35 @@
+server:
+  port: 8123
+  servlet:
+    context-path: /api
+
+spring:
+  application:
+    name: Gen-Library-Backend
+  # 数据库配置
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/gen_lib
+    username: root
+    password: 123456
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: false
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      logic-delete-field: isDelete #全局逻辑删除
+      logic-not-delete-value: 0    #默认未删除值为 0
+      logic-delete-value: 1        #默认删除值为 1
+#接口文档注释
+knife4j:
+  enable: true
+  openapi:
+    title: Gen-Library接口文档
+    version: v1.0
+    group:
+      default:
+        group-name: 默认分组
+        api-rule: package
+        api-rule-resources:
+          - com.gjj.genlibrarybackend.controller
