@@ -122,7 +122,7 @@
     由于 Mybatis-X generator 生产的数据库实体类，可能不符我们的要求，比如：
 
    1. 可以替换 id 的连续生成策略，使用 `ASSIGN_ID` 雪花算法进行生成
-   2. 对于 `isDelete` 字段，增添 @TableLogic 注解，这样就会拥有逻辑删除的效果
+   2. 对于 `isDelete` 字段，增添 @`TableLogic` 注解，这样就会拥有逻辑删除的效果
 
 2. 枚举类（`model.enums`）
 
@@ -153,11 +153,14 @@
      - 参数为空
      - `userAccount` 过短：< 4 
      - `userPassword`  过短：<8
-     - 两次输入的密码不一致
+       - 两次输入的密码不一致
 
 3. 加密处理
 
    同时为了防止用户的密码泄露，我们将用户的密码进行加密存储，而这一个过程就可以封装为一个方法 `getEncryptPassword(String userPassword)`
+
+   1. 具体是 定义一个 `salt` 盐值
+   2. 然后再使用 `hutool` 的 `DigestUtil.md5Hex` 单向加密算法进行加密
 
 4. 接口开发
 
@@ -240,14 +243,29 @@
 
 1. 权限校验注解
    - `annotation.AuthCheck` 接口类中，编写权限校验注解
+   
 2. 权限校验切面
    - `aop.AuthInterceptor` 中编写权限校验AOP，使用`@Around("@annotation(authCheck)")` 环绕通知
+   
 3. 使用注解
-   - 现在只要给方法添加了 `@AuthCheck` 注解，就相当于有了权限校验的功能。
+   - 现在只要给对应的 `controller` 方法上添加了 `@AuthCheck` 注解，就相当于有了权限校验的功能。
+   
+     例如：
+   
+     ```java
+     @GetMapping("/health")
+     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
+     public BaseResponse<String> health() {
+         return ResultUtils.success("ok");
+     }
+     
+     ```
+   
+     
 
 ##### 4.6用户管理
 
-1. 功能拆分：
+1. 功能拆分分析：
    1. 【管理员】创建用户
    2. 【管理员】根据 id 删除用户
    3. 【管理员】更新用户
@@ -261,4 +279,91 @@
 3. 数据脱敏
    - 在 `model.vo` 包中新增 `UserVo`，表示脱敏后的用户
 4. 服务开发
+
+   ```java
+   //增添用户
+   Long addUser(UserAddRequest userAddRequest);
+   
+   //根据 ID 获取用户信息
+   User getUserById(long id);
+   
+   //根据 ID 获取用户脱敏信息
+   UserVO getUserVOById(long id);
+   
+   //删除用户
+   boolean deleteUser(long id);
+   
+   //更新用户
+   boolean updateUser(UserUpdateRequest userUpdateRequest);
+   
+   //获取用户脱敏信息
+   UserVO getUserVO(User user);
+   
+   //批量获取用户脱敏信息列表
+   List<UserVO> getUserVOList(List<User> userList);
+   
+   //获取查询条件
+   QueryWrapper<User> getQueryWrapper(UserQueryRequest userQueryRequest);
+   ```
+
+   
 5. 接口开发 
+
+   ```java
+   @PostMapping("/add")
+   @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)// 以下每一个管理员接口都需要去写注解校验
+   public BaseResponse<Long> addUser(@RequestBody UserAddRequest userAddRequest) {
+       ThrowUtils.throwIf(userAddRequest == null , ErrorCode.PARAMS_ERROR);
+       return ResultUtils.success(userService.addUser(userAddRequest));
+   }
+   
+   @GetMapping("/get")
+   public BaseResponse<User> getUserById(long id) {
+       ThrowUtils.throwIf(id <= 0 , ErrorCode.PARAMS_ERROR);
+       return ResultUtils.success(userService.getUserById(id));
+   }
+   
+   @GetMapping("/get/vo")
+   public BaseResponse<UserVO> getUserVOById(long id) {
+       ThrowUtils.throwIf(id <= 0 , ErrorCode.PARAMS_ERROR);
+       return ResultUtils.success(userService.getUserVOById(id));
+   }
+   
+   @PostMapping("/delete")
+   public BaseResponse<Boolean> deleteUser(@RequestBody DeleteRequest deleteRequest) {
+       ThrowUtils.throwIf(deleteRequest == null , ErrorCode.PARAMS_ERROR);
+       return ResultUtils.success(userService.deleteUser(deleteRequest.getId()));
+   }
+   
+   @PostMapping("/update")
+   public BaseResponse<Boolean> updateUser(@RequestBody UserUpdateRequest userUpdateRequest) {
+       ThrowUtils.throwIf(userUpdateRequest == null , ErrorCode.PARAMS_ERROR);
+       return ResultUtils.success(userService.updateUser(userUpdateRequest));
+   }
+   
+   @PostMapping("/list/page/vo")
+   public BaseResponse<Page<UserVO>> listUserVOByPage(@RequestBody UserQueryRequest userQueryRequest) {
+       ThrowUtils.throwIf(userQueryRequest == null , ErrorCode.PARAMS_ERROR);
+       long current = userQueryRequest.getCurrent();  //获取当前页号
+       long pageSize = userQueryRequest.getPageSize();
+       Page<User> userPage = userService.page(new Page<>(current , pageSize) ,
+               userService.getQueryWrapper(userQueryRequest));
+       Page<UserVO> userVOPage = new Page<>(current , pageSize , userPage.getTotal());
+       List<UserVO> userVOList = userService.getUserVOList(userPage.getRecords());
+       userVOPage.setRecords(userVOList);
+       return ResultUtils.success(userVOPage);
+   }
+   
+   ```
+
+## 6/29开发日志
+
+### 开发目标
+
+- #### 看完图片板块
+
+- 亲自敲完图片板块代码
+
+- 搬运前端代码
+
+### 开发详细日志

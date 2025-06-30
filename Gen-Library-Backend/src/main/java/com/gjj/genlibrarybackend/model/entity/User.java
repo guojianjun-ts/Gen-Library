@@ -2,16 +2,18 @@ package com.gjj.genlibrarybackend.model.entity;
 
 import com.baomidou.mybatisplus.annotation.*;
 
+import java.io.Serializable;
 import java.util.Date;
 import lombok.Data;
 
 /**
  * 用户信息表
+ *
  * @TableName user
  */
-@TableName(value ="user")
+@TableName(value = "user")
 @Data
-public class User {
+public class User implements Serializable {
     /**
      * 用户ID（主键策略---雪花算法生成）
      */
@@ -68,4 +70,7 @@ public class User {
      */
     @TableLogic
     private Integer isDelete;
+    @TableField(exist = false)
+    private static final long serialVersionUID = -5058573072216634437L;
+
 }
