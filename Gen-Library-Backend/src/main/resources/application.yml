@@ -32,3 +32,11 @@ knife4j:
         api-rule: package
         api-rule-resources:
           - com.gjj.genlibrarybackend.controller
+# 对象存储配置（需要从腾讯云获取）
+#cos:
+#  client:
+#    host:
+#    SecretId:
+#    SecretKey:
+#    region:
+#    bucket:
