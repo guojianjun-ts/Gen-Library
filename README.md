@@ -460,8 +460,8 @@
     COS:
       client:
         host: https://genlib-1348838377.COS.ap-chengdu.myqcloud.com
-        SecretId: AKIDpW3NTMAmAKH2bx5A3jCRVN1SgiW7UfdN
-        SecretKey: a1GH5oKdkePxHZhbIKCuPgleJlz3uYq1
+        SecretId: xxx
+        SecretKey: xxx
         region: ap-chengdu
         bucket: genlib-1348838377
     ```
